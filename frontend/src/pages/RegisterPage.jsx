@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, Mail, Lock, User, GraduationCap, Briefcase, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, GraduationCap, Briefcase, AlertCircle, CheckCircle, Server } from 'lucide-react';
+import { getApiBaseUrl } from '../services/api';
+import ServerConnectionDrawer from '../components/common/ServerConnectionDrawer';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -13,6 +15,7 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -56,6 +59,14 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const currentApiUrl = getApiBaseUrl();
+  const isConnectionError = error && (
+    error.includes('Unable to connect') ||
+    error.includes('Network Error') ||
+    error.includes('ERR_NETWORK') ||
+    error.includes('404')
+  );
 
   return (
     <div style={{
@@ -107,18 +118,40 @@ export default function RegisterPage() {
           {error && (
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
+              flexDirection: 'column',
+              gap: '8px',
               padding: '12px 14px',
               borderRadius: '10px',
               background: 'rgba(239, 68, 68, 0.12)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               color: '#f87171',
-              fontSize: '14px',
+              fontSize: '13px',
               marginBottom: '20px'
             }}>
-              <AlertCircle size={18} />
-              <span>{error}</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>{error}</span>
+              </div>
+              {isConnectionError && (
+                <button
+                  type="button"
+                  onClick={() => setIsServerModalOpen(true)}
+                  style={{
+                    alignSelf: 'flex-start',
+                    marginTop: '4px',
+                    background: 'rgba(239, 68, 68, 0.25)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    color: '#ffffff',
+                    padding: '5px 10px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Configure Backend Server URL &rarr;
+                </button>
+              )}
             </div>
           )}
 
@@ -138,21 +171,20 @@ export default function RegisterPage() {
                     padding: '12px',
                     borderRadius: '10px',
                     border: formData.role === 'ROLE_STUDENT' ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
-                    background: formData.role === 'ROLE_STUDENT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.5)',
-                    color: formData.role === 'ROLE_STUDENT' ? '#ffffff' : 'var(--text-secondary)',
-                    cursor: 'pointer',
+                    background: formData.role === 'ROLE_STUDENT' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                    color: formData.role === 'ROLE_STUDENT' ? 'var(--primary-color)' : 'var(--text-secondary)',
+                    fontWeight: '600',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    fontWeight: '600',
+                    cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
                 >
-                  <GraduationCap size={18} color={formData.role === 'ROLE_STUDENT' ? 'var(--primary-color)' : 'currentColor'} />
+                  <GraduationCap size={18} />
                   <span>Student</span>
                 </button>
-
                 <button
                   type="button"
                   id="role-instructor-btn"
@@ -161,23 +193,24 @@ export default function RegisterPage() {
                     padding: '12px',
                     borderRadius: '10px',
                     border: formData.role === 'ROLE_INSTRUCTOR' ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
-                    background: formData.role === 'ROLE_INSTRUCTOR' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.5)',
-                    color: formData.role === 'ROLE_INSTRUCTOR' ? '#ffffff' : 'var(--text-secondary)',
-                    cursor: 'pointer',
+                    background: formData.role === 'ROLE_INSTRUCTOR' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                    color: formData.role === 'ROLE_INSTRUCTOR' ? 'var(--primary-color)' : 'var(--text-secondary)',
+                    fontWeight: '600',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    fontWeight: '600',
+                    cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
                 >
-                  <Briefcase size={18} color={formData.role === 'ROLE_INSTRUCTOR' ? 'var(--primary-color)' : 'currentColor'} />
+                  <Briefcase size={18} />
                   <span>Instructor</span>
                 </button>
               </div>
             </div>
 
+            {/* Full Name */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>
                 Full Name
@@ -187,10 +220,10 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   name="fullName"
-                  id="register-name-input"
+                  id="register-fullname-input"
                   value={formData.fullName}
                   onChange={handleChange}
-                  placeholder="e.g. John Doe"
+                  placeholder="John Doe"
                   required
                   style={{
                     width: '100%',
@@ -206,6 +239,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Email */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>
                 Email Address
@@ -234,6 +268,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Password */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>
@@ -262,17 +297,16 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
-
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>
-                  Confirm
+                  Confirm Password
                 </label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '14px', top: '15px', color: 'var(--text-muted)' }} />
                   <input
                     type="password"
                     name="confirmPassword"
-                    id="register-confirm-input"
+                    id="register-confirmpassword-input"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="••••••••"
@@ -330,8 +364,46 @@ export default function RegisterPage() {
               Sign In
             </Link>
           </div>
+
+          {/* Server Connection Indicator Pill */}
+          <div style={{
+            marginTop: '20px',
+            paddingTop: '16px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <button
+              type="button"
+              onClick={() => setIsServerModalOpen(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                padding: '5px 12px',
+                color: '#94a3b8',
+                fontSize: '11px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title="Click to check or change backend API server"
+            >
+              <Server size={12} color="#818cf8" />
+              <span>API: <code style={{ color: '#c7d2fe' }}>{currentApiUrl}</code></span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Backend Server Settings Drawer */}
+      <ServerConnectionDrawer
+        isOpen={isServerModalOpen}
+        onClose={() => setIsServerModalOpen(false)}
+      />
     </div>
   );
 }

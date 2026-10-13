@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Clock, BookOpen, CheckCircle, ArrowRight } from 'lucide-react';
+import { getAssetUrl } from '../../services/api';
 
 const CourseCard = ({ course }) => {
   const formatDuration = (seconds) => {
@@ -38,7 +39,7 @@ const CourseCard = ({ course }) => {
       {/* Thumbnail */}
       <div style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden' }}>
         <img
-          src={course.thumbnailUrl || defaultThumbnail}
+          src={getAssetUrl(course.thumbnailUrl) || defaultThumbnail}
           alt={course.title}
           style={{
             width: '100%',

@@ -19,13 +19,17 @@ export const AuthProvider = ({ children }) => {
           setToken(storedToken);
           // Verify with backend
           const res = await api.get('/auth/me');
-          if (res.data) {
-            setUser(res.data);
-            localStorage.setItem('learnhub_user', JSON.stringify(res.data));
+          const userData = res?.data || res;
+          if (userData && (userData.email || userData.id)) {
+            setUser(userData);
+            localStorage.setItem('learnhub_user', JSON.stringify(userData));
           }
         } catch (err) {
-          console.error("Token verification failed, logging out:", err);
-          logout();
+          console.warn("Token verification failed with backend:", err);
+          // Only clear session if explicitly unauthorized (token invalid/expired)
+          if (err.message && (err.message.includes('401') || err.message.toLowerCase().includes('unauthorized'))) {
+            logout();
+          }
         }
       }
       setLoading(false);
@@ -36,28 +40,33 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    if (res.success && res.data) {
-      const { token, ...userData } = res.data;
-      setToken(token);
+    // Defensive extraction: works with ApiResponse envelope { success, data } or direct object
+    const payload = res?.data || res;
+    const jwtToken = payload?.token;
+    if (jwtToken) {
+      const { token: _, ...userData } = payload;
+      setToken(jwtToken);
       setUser(userData);
-      localStorage.setItem('learnhub_token', token);
+      localStorage.setItem('learnhub_token', jwtToken);
       localStorage.setItem('learnhub_user', JSON.stringify(userData));
       return userData;
     }
-    throw new Error(res.message || 'Login failed');
+    throw new Error(res?.message || 'Login failed: No authentication token received');
   };
 
   const register = async (userData) => {
     const res = await api.post('/auth/register', userData);
-    if (res.success && res.data) {
-      const { token, ...registeredUser } = res.data;
-      setToken(token);
+    const payload = res?.data || res;
+    const jwtToken = payload?.token;
+    if (jwtToken) {
+      const { token: _, ...registeredUser } = payload;
+      setToken(jwtToken);
       setUser(registeredUser);
-      localStorage.setItem('learnhub_token', token);
+      localStorage.setItem('learnhub_token', jwtToken);
       localStorage.setItem('learnhub_user', JSON.stringify(registeredUser));
       return registeredUser;
     }
-    throw new Error(res.message || 'Registration failed');
+    throw new Error(res?.message || 'Registration failed: No authentication token received');
   };
 
   const logout = () => {

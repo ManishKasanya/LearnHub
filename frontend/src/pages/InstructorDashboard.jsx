@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { getAssetUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
   BookOpen,
@@ -912,7 +912,7 @@ const InstructorDashboard = () => {
                       {courseForm.thumbnailUrl ? (
                         <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.15)', height: '110px' }}>
                           <img
-                            src={courseForm.thumbnailUrl}
+                            src={getAssetUrl(courseForm.thumbnailUrl)}
                             alt="Thumbnail Preview"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />

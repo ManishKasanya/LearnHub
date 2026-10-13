@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
+import api, { getAssetUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
   PlayCircle,
@@ -197,7 +197,7 @@ const CoursePlayerPage = () => {
                       controls
                       controlsList="nodownload"
                       style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' }}
-                      src={currentLesson.videoUrl}
+                      src={getAssetUrl(currentLesson.videoUrl)}
                     />
                   ) : (
                     <iframe

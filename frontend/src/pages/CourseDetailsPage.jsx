@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
+import api, { getAssetUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
   Clock,
@@ -433,7 +433,7 @@ const CourseDetailsPage = () => {
                     <video
                       controls
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      src={previewLesson.videoUrl}
+                      src={getAssetUrl(previewLesson.videoUrl)}
                     />
                   ) : (
                     <iframe
